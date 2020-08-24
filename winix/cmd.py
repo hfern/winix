@@ -183,7 +183,14 @@ def main():
 
     commands = {
         cls.parser_args['name']: cls
-        for cls in (FanCmd, PowerCmd, LoginCmd, RefreshCmd, DevicesCmd,)
+        for cls in (
+            LoginCmd,
+            RefreshCmd,
+            DevicesCmd,
+
+            FanCmd,
+            PowerCmd,
+        )
     }
 
     for cls in commands.values():
