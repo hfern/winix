@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import dataclasses
+import re
 from getpass import getpass
 from os import environ, path, makedirs
 from typing import Optional, List
@@ -107,14 +108,20 @@ class DevicesCmd(Cmd):
 
     @classmethod
     def add_parser(cls, parser):
-        pass
+        parser.add_argument('--expose', action='store_true', help='Expose sensitive Device ID string')
 
     def execute(self):
+        expose = getattr(self.args, 'expose', False)
         print(f'{len(self.config.devices)} devices:')
 
         for i, device in enumerate(self.config.devices):
+            hidden_deviceid = '_'.join([
+                device.id.split('_')[0],
+                '*' * len(device.id.split('_', 1)[1]),
+            ])
+
             fields = (
-                ('Device ID', device.id),
+                ('Device ID', device.id if expose else hidden_deviceid + ' (hidden)'),
                 ('Mac', device.mac),
                 ('Alias', device.alias),
                 ('Location', device.location_code)
