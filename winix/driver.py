@@ -133,6 +133,12 @@ class WinixDevice:
         "on": "1",
     }
 
+    K_PLASMA = "A07"
+    V_PLASMA_STATES = {
+        "off": "0",
+        "on": "1",
+    }
+
     def __init__(self, id):
         self.id = id
 
@@ -168,6 +174,12 @@ class WinixDevice:
 
     def sleep(self):
         self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["sleep"])
+
+    def plasma_off(self):
+        self._rpc_attr(self.K_PLASMA, self.V_PLASMA_STATES["off"])
+
+    def plasma_on(self):
+        self._rpc_attr(self.K_PLASMA, self.V_PLASMA_STATES["on"])
 
     def _rpc_attr(self, attr: str, value: str):
         requests.get(self.URL.format(deviceid=self.id, attribute=attr, value=value))
