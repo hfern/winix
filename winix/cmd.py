@@ -10,12 +10,14 @@ from typing import Optional, List
 from winix import WinixAccount, WinixDevice, WinixDeviceStub
 from winix.auth import WinixAuthResponse, login, refresh
 
-DEFAULT_CONFIG_PATH = '~/.config/winix/config.json'
+DEFAULT_CONFIG_PATH = "~/.config/winix/config.json"
 
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
-        return dataclasses.asdict(o) if dataclasses.is_dataclass(o) else super().default(o)
+        return (
+            dataclasses.asdict(o) if dataclasses.is_dataclass(o) else super().default(o)
+        )
 
 
 class Configuration:
@@ -37,8 +39,12 @@ class Configuration:
             with open(self.config_path) as f:
                 js = json.load(f)
                 self.exists = True
-                self.cognito = WinixAuthResponse(**js['cognito']) if js.get('cognito') is not None else None
-                self.devices = [WinixDeviceStub(**d) for d in js.get('devices', [])]
+                self.cognito = (
+                    WinixAuthResponse(**js["cognito"])
+                    if js.get("cognito") is not None
+                    else None
+                )
+                self.devices = [WinixDeviceStub(**d) for d in js.get("devices", [])]
         else:
             self.exists = False
             self.cognito = None
@@ -46,11 +52,10 @@ class Configuration:
 
     def save(self):
         makedirs(path.dirname(self.config_path), mode=0o755, exist_ok=True)
-        with open(os.open(self.config_path, os.O_CREAT | os.O_WRONLY, 0o755), 'w') as f:
-            json.dump({
-                'cognito': self.cognito,
-                'devices': self.devices,
-            }, f, cls=JSONEncoder)
+        with open(os.open(self.config_path, os.O_CREAT | os.O_WRONLY, 0o755), "w") as f:
+            json.dump(
+                {"cognito": self.cognito, "devices": self.devices,}, f, cls=JSONEncoder
+            )
 
 
 class Cmd:
@@ -61,27 +66,33 @@ class Cmd:
 
 class LoginCmd(Cmd):
     parser_args = {
-        'name': 'login',
-        'help': 'Authenticate Winix account',
+        "name": "login",
+        "help": "Authenticate Winix account",
     }
 
     @classmethod
     def add_parser(cls, parser):
-        parser.add_argument('--username', help='Username (email)', required=False)
-        parser.add_argument('--password', help='Password', required=False)
-        parser.add_argument('--refresh', dest='refresh', action='store_true',
-                            help='Refresh the Winix Cognito token instead of logging in')
+        parser.add_argument("--username", help="Username (email)", required=False)
+        parser.add_argument("--password", help="Password", required=False)
+        parser.add_argument(
+            "--refresh",
+            dest="refresh",
+            action="store_true",
+            help="Refresh the Winix Cognito token instead of logging in",
+        )
 
     def execute(self):
-        if getattr(self.args, 'refresh'):
+        if getattr(self.args, "refresh"):
             return self._refresh()
         else:
             return self._login()
 
     def _login(self):
-        print('You need to signup for a Winix account & associate your device in the phone app before using this.')
-        username = getattr(self.args, 'username') or input('Username (email): ')
-        password = getattr(self.args, 'password') or getpass('Password: ')
+        print(
+            "You need to signup for a Winix account & associate your device in the phone app before using this."
+        )
+        username = getattr(self.args, "username") or input("Username (email): ")
+        password = getattr(self.args, "password") or getpass("Password: ")
 
         self.config.cognito = login(username, password)
         account = WinixAccount(self.config.cognito.access_token)
@@ -89,7 +100,7 @@ class LoginCmd(Cmd):
         account.check_access_token()
         self.config.devices = account.get_device_info_list()
         self.config.save()
-        print('Ok')
+        print("Ok")
 
     def _refresh(self):
         self.config.cognito = refresh(
@@ -98,80 +109,89 @@ class LoginCmd(Cmd):
         )
         WinixAccount(self.config.cognito.access_token).check_access_token()
         self.config.save()
-        print('Ok')
+        print("Ok")
 
 
 class DevicesCmd(Cmd):
     parser_args = {
-        'name': 'devices',
-        'help': 'List registered Winix devices',
+        "name": "devices",
+        "help": "List registered Winix devices",
     }
 
     @classmethod
     def add_parser(cls, parser):
-        parser.add_argument('--expose', action='store_true', help='Expose sensitive Device ID string')
+        parser.add_argument(
+            "--expose", action="store_true", help="Expose sensitive Device ID string"
+        )
 
     def execute(self):
-        expose = getattr(self.args, 'expose', False)
-        print(f'{len(self.config.devices)} devices:')
+        expose = getattr(self.args, "expose", False)
+        print(f"{len(self.config.devices)} devices:")
 
         for i, device in enumerate(self.config.devices):
-            hidden_deviceid = '_'.join([
-                device.id.split('_')[0],
-                '*' * len(device.id.split('_', 1)[1]),
-            ])
+            hidden_deviceid = "_".join(
+                [device.id.split("_")[0], "*" * len(device.id.split("_", 1)[1]),]
+            )
 
             fields = (
-                ('Device ID', device.id if expose else hidden_deviceid + ' (hidden)'),
-                ('Mac', device.mac),
-                ('Alias', device.alias),
-                ('Location', device.location_code)
+                ("Device ID", device.id if expose else hidden_deviceid + " (hidden)"),
+                ("Mac", device.mac),
+                ("Alias", device.alias),
+                ("Location", device.location_code),
             )
 
             label = " (default)" if i == 0 else ""
-            print(f'Device#{i}{label} '.ljust(50, '-'))
+            print(f"Device#{i}{label} ".ljust(50, "-"))
 
             for f, v in fields:
-                print(f'{f:>15} : {v}')
+                print(f"{f:>15} : {v}")
 
-            print('')
+            print("")
 
-        print('Missing a device? You might need to run refresh.')
+        print("Missing a device? You might need to run refresh.")
 
 
 class FanCmd(Cmd):
     parser_args = {
-        'name': 'fan',
-        'help': 'Fan speed controls',
+        "name": "fan",
+        "help": "Fan speed controls",
     }
 
     @classmethod
     def add_parser(cls, parser):
-        parser.add_argument('level', help='Fan level', choices=['low', 'medium', 'high', 'turbo'])
+        parser.add_argument(
+            "level", help="Fan level", choices=["low", "medium", "high", "turbo"]
+        )
 
     def execute(self):
         level = self.args.level
         # TODO(Hunter): Support getting the fan state instead of only being able to set it
         device = WinixDevice(self.config.device.id)
         getattr(device, level)()
-        print('ok')
+        print("ok")
 
 
 class PowerCmd(Cmd):
     parser_args = {
-        'name': 'power',
-        'help': 'Power controls',
+        "name": "power",
+        "help": "Power controls",
     }
 
     @classmethod
     def add_parser(cls, parser):
-        parser.add_argument('state', help='Power state', choices=['on', 'off'])
+        parser.add_argument("state", help="Power state", choices=["on", "off"])
+
+    def execute(self):
+        state = self.args.state
+        device = WinixDevice(self.config.device.id)
+        getattr(device, state)()
+        print("ok")
 
 
 class RefreshCmd(Cmd):
     parser_args = {
-        'name': 'refresh',
-        'help': 'Refresh account device metadata',
+        "name": "refresh",
+        "help": "Refresh account device metadata",
     }
 
     @classmethod
@@ -182,23 +202,16 @@ class RefreshCmd(Cmd):
         account = WinixAccount(self.config.cognito.access_token)
         self.config.devices = account.get_device_info_list()
         self.config.save()
-        print('Ok')
+        print("Ok")
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Winix C545 Air Purifier Control')
-    subparsers = parser.add_subparsers(dest='cmd')
+    parser = argparse.ArgumentParser(description="Winix C545 Air Purifier Control")
+    subparsers = parser.add_subparsers(dest="cmd")
 
     commands = {
-        cls.parser_args['name']: cls
-        for cls in (
-            LoginCmd,
-            RefreshCmd,
-            DevicesCmd,
-
-            FanCmd,
-            PowerCmd,
-        )
+        cls.parser_args["name"]: cls
+        for cls in (LoginCmd, RefreshCmd, DevicesCmd, FanCmd, PowerCmd,)
     }
 
     for cls in commands.values():
@@ -213,4 +226,4 @@ def main():
         return
 
     cls = commands[cmd]
-    cls(args, config=Configuration('~/.config/winix/config.json')).execute()
+    cls(args, config=Configuration("~/.config/winix/config.json")).execute()

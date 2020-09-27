@@ -24,36 +24,42 @@ class WinixAccount:
         from winix import auth
 
         payload = {
-            'cognitoClientSecretKey': auth.COGNITO_CLIENT_SECRET_KEY,
-            'accessToken': self.access_token,
-            'uuid': self.get_uuid(),
-            'osVersion': '26',  # oreo
-            'mobileLang': 'en',
+            "cognitoClientSecretKey": auth.COGNITO_CLIENT_SECRET_KEY,
+            "accessToken": self.access_token,
+            "uuid": self.get_uuid(),
+            "osVersion": "26",  # oreo
+            "mobileLang": "en",
         }
 
-        resp = requests.post('https://us.mobile.winix-iot.com/checkAccessToken', json=payload)
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/checkAccessToken", json=payload
+        )
 
         if resp.status_code != 200:
-            raise Exception(f'Error while performing RPC checkAccessToken ({resp.status_code}): {resp.text}')
+            raise Exception(
+                f"Error while performing RPC checkAccessToken ({resp.status_code}): {resp.text}"
+            )
 
     def get_device_info_list(self):
-        resp = requests.post('https://us.mobile.winix-iot.com/getDeviceInfoList', json={
-            'accessToken': self.access_token,
-            'uuid': self.get_uuid(),
-        })
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/getDeviceInfoList",
+            json={"accessToken": self.access_token, "uuid": self.get_uuid(),},
+        )
 
         if resp.status_code != 200:
-            raise Exception(f'Error while performing RPC checkAccessToken ({resp.status_code}): {resp.text}')
+            raise Exception(
+                f"Error while performing RPC checkAccessToken ({resp.status_code}): {resp.text}"
+            )
 
         return [
             WinixDeviceStub(
-                id=d['deviceId'],
-                mac=d['mac'],
-                alias=d['deviceAlias'],
-                location_code=d['deviceLocCode'],
-                filter_replace_date=d['filterReplaceDate'],
+                id=d["deviceId"],
+                mac=d["mac"],
+                alias=d["deviceAlias"],
+                location_code=d["deviceLocCode"],
+                filter_replace_date=d["filterReplaceDate"],
             )
-            for d in resp.json()['deviceInfoList']
+            for d in resp.json()["deviceInfoList"]
         ]
 
     def register_user(self, email: str):
@@ -62,18 +68,24 @@ class WinixAccount:
         # necessary for the winix backend to recognize the Android "uuid" we send
         # in most API requests
         from winix import auth
-        resp = requests.post('https://us.mobile.winix-iot.com/registerUser', json={
-            'cognitoClientSecretKey': auth.COGNITO_CLIENT_SECRET_KEY,
-            'accessToken': self.access_token,
-            'uuid': self.get_uuid(),
-            'email': email,
-            'osType': 'android',
-            'osVersion': '29',
-            'mobileLang': 'en',
-        })
+
+        resp = requests.post(
+            "https://us.mobile.winix-iot.com/registerUser",
+            json={
+                "cognitoClientSecretKey": auth.COGNITO_CLIENT_SECRET_KEY,
+                "accessToken": self.access_token,
+                "uuid": self.get_uuid(),
+                "email": email,
+                "osType": "android",
+                "osVersion": "29",
+                "mobileLang": "en",
+            },
+        )
 
         if resp.status_code != 200:
-            raise Exception(f'Error while performing RPC registerUser ({resp.status_code}): {resp.text}')
+            raise Exception(
+                f"Error while performing RPC registerUser ({resp.status_code}): {resp.text}"
+            )
 
     def get_uuid(self) -> str:
         # We construct our fake secure Android ID as
@@ -82,31 +94,52 @@ class WinixAccount:
 
         if self._uuid is None:
             from jose import jwt
-            userid_b = jwt.get_unverified_claims(self.access_token)['sub'].encode()
-            p1 = crc32(b'github.com/hfern/winixctl' + userid_b)
-            p2 = crc32(b'HGF' + userid_b)
-            self._uuid = f'{p1:08x}{p2:08x}'
+
+            userid_b = jwt.get_unverified_claims(self.access_token)["sub"].encode()
+            p1 = crc32(b"github.com/hfern/winixctl" + userid_b)
+            p2 = crc32(b"HGF" + userid_b)
+            self._uuid = f"{p1:08x}{p2:08x}"
 
         return self._uuid
 
 
 class WinixDevice:
-    URL = 'https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/A04:{level}'
+    URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
+
+    K_POWER = "A02"
+    V_POWER_STATES = {
+        "off": "0",
+        "on": "1",
+    }
+
+    K_AIRFLOW = "A04"
+    V_AIRFLOW_STATES = {
+        "low": "01",
+        "medium": "02",
+        "high": "03",
+        "turbo": "05",
+    }
 
     def __init__(self, id):
         self.id = id
 
+    def off(self):
+        self._rpc_attr(self.K_POWER, self.V_POWER_STATES["off"])
+
+    def on(self):
+        self._rpc_attr(self.K_POWER, self.V_POWER_STATES["on"])
+
     def low(self):
-        return self._set_airflow('01')
+        self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["low"])
 
     def medium(self):
-        return self._set_airflow('02')
+        self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["medium"])
 
     def high(self):
-        return self._set_airflow('03')
+        self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["high"])
 
     def turbo(self):
-        return self._set_airflow('05')
+        self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["turbo"])
 
-    def _set_airflow(self, level: str):
-        requests.get(self.URL.format(deviceid=self.id, level=level))
+    def _rpc_attr(self, attr: str, value: str):
+        requests.get(self.URL.format(deviceid=self.id, attribute=attr, value=value))
