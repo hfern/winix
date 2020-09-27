@@ -9,3 +9,7 @@ prepare-venv:
 	$(HIDE)$(BIN_DIR)pip install --upgrade pip
 	$(HIDE)$(BIN_DIR)pip install -c requirements.txt
 	$(HIDE)$(BIN_DIR)pip install --editable .
+
+dist:
+	$(HIDE)$(BIN_DIR)python setup.py sdist bdist_wheel
+	$(HIDE)$(BIN_DIR)python3 -m twine upload  dist/*

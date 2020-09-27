@@ -79,6 +79,7 @@ class LoginCmd(Cmd):
             return self._login()
 
     def _login(self):
+        print('You need to signup for a Winix account & associate your device in the phone app before using this.')
         username = getattr(self.args, 'username') or input('Username (email): ')
         password = getattr(self.args, 'password') or getpass('Password: ')
 
