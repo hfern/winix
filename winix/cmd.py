@@ -160,7 +160,7 @@ class FanCmd(Cmd):
     @classmethod
     def add_parser(cls, parser):
         parser.add_argument(
-            "level", help="Fan level", choices=["low", "medium", "high", "turbo"]
+            "level", help="Fan level", choices=["low", "medium", "high", "turbo", "sleep"]
         )
 
     def execute(self):

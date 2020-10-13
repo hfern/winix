@@ -118,6 +118,7 @@ class WinixDevice:
         "medium": "02",
         "high": "03",
         "turbo": "05",
+        "sleep": "06",
     }
 
     def __init__(self, id):
@@ -140,6 +141,9 @@ class WinixDevice:
 
     def turbo(self):
         self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["turbo"])
+
+    def sleep(self):
+        self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["sleep"])
 
     def _rpc_attr(self, attr: str, value: str):
         requests.get(self.URL.format(deviceid=self.id, attribute=attr, value=value))
