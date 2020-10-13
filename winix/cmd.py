@@ -160,7 +160,7 @@ class FanCmd(Cmd):
     @classmethod
     def add_parser(cls, parser):
         parser.add_argument(
-            "level", help="Fan level", choices=["low", "medium", "high", "turbo"]
+            "level", help="Fan level", choices=["low", "medium", "high", "turbo", "sleep"]
         )
 
     def execute(self):
@@ -183,6 +183,40 @@ class PowerCmd(Cmd):
 
     def execute(self):
         state = self.args.state
+        device = WinixDevice(self.config.device.id)
+        getattr(device, state)()
+        print("ok")
+
+
+class ModeCmd(Cmd):
+    parser_args = {
+        "name": "mode",
+        "help": "Mode controls",
+    }
+
+    @classmethod
+    def add_parser(cls, parser):
+        parser.add_argument("state", help="Mode state", choices=["auto", "manual"])
+
+    def execute(self):
+        state = self.args.state
+        device = WinixDevice(self.config.device.id)
+        getattr(device, state)()
+        print("ok")
+
+
+class PlasmawaveCmd(Cmd):
+    parser_args = {
+        "name": "plasmawave",
+        "help": "Plasmawave controls",
+    }
+
+    @classmethod
+    def add_parser(cls, parser):
+        parser.add_argument("state", help="Plasmawave state", choices=["on", "off"])
+
+    def execute(self):
+        state = "plasmawave_on" if self.args.state == "on" else "plasmawave_off"
         device = WinixDevice(self.config.device.id)
         getattr(device, state)()
         print("ok")
@@ -211,7 +245,7 @@ def main():
 
     commands = {
         cls.parser_args["name"]: cls
-        for cls in (LoginCmd, RefreshCmd, DevicesCmd, FanCmd, PowerCmd,)
+        for cls in (LoginCmd, RefreshCmd, DevicesCmd, FanCmd, PowerCmd, ModeCmd, PlasmawaveCmd,)
     }
 
     for cls in commands.values():

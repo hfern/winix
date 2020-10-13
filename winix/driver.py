@@ -112,12 +112,25 @@ class WinixDevice:
         "on": "1",
     }
 
+    K_MODE = "A03"
+    V_MODE_STATES = {
+        "auto": "01",
+        "manual": "02"
+    }
+
     K_AIRFLOW = "A04"
     V_AIRFLOW_STATES = {
         "low": "01",
         "medium": "02",
         "high": "03",
         "turbo": "05",
+        "sleep": "06",
+    }
+
+    K_PLASMAWAVE = "A07"
+    V_PLASMAWAVE_STATES = {
+        "off": "0",
+        "on": "1",
     }
 
     def __init__(self, id):
@@ -128,6 +141,18 @@ class WinixDevice:
 
     def on(self):
         self._rpc_attr(self.K_POWER, self.V_POWER_STATES["on"])
+
+    def auto(self):
+        self._rpc_attr(self.K_MODE, self.V_MODE_STATES["auto"])
+
+    def manual(self):
+        self._rpc_attr(self.K_MODE, self.V_MODE_STATES["manual"])
+
+    def plasmawave_off(self):
+        self._rpc_attr(self.K_PLASMAWAVE, self.V_PLASMAWAVE_STATES["off"])
+
+    def plasmawave_on(self):
+        self._rpc_attr(self.K_PLASMAWAVE, self.V_PLASMAWAVE_STATES["on"])
 
     def low(self):
         self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["low"])
@@ -140,6 +165,9 @@ class WinixDevice:
 
     def turbo(self):
         self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["turbo"])
+
+    def sleep(self):
+        self._rpc_attr(self.K_AIRFLOW, self.V_AIRFLOW_STATES["sleep"])
 
     def _rpc_attr(self, attr: str, value: str):
         requests.get(self.URL.format(deviceid=self.id, attribute=attr, value=value))
