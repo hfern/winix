@@ -113,10 +113,7 @@ class WinixDevice:
     }
 
     K_MODE = "A03"
-    V_MODE_STATES = {
-        "auto": "01",
-        "manual": "02"
-    }
+    V_MODE_STATES = {"auto": "01", "manual": "02"}
 
     K_AIRFLOW = "A04"
     V_AIRFLOW_STATES = {

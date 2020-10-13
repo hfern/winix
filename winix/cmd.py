@@ -160,7 +160,9 @@ class FanCmd(Cmd):
     @classmethod
     def add_parser(cls, parser):
         parser.add_argument(
-            "level", help="Fan level", choices=["low", "medium", "high", "turbo", "sleep"]
+            "level",
+            help="Fan level",
+            choices=["low", "medium", "high", "turbo", "sleep"],
         )
 
     def execute(self):
@@ -245,7 +247,15 @@ def main():
 
     commands = {
         cls.parser_args["name"]: cls
-        for cls in (LoginCmd, RefreshCmd, DevicesCmd, FanCmd, PowerCmd, ModeCmd, PlasmawaveCmd,)
+        for cls in (
+            LoginCmd,
+            RefreshCmd,
+            DevicesCmd,
+            FanCmd,
+            PowerCmd,
+            ModeCmd,
+            PlasmawaveCmd,
+        )
     }
 
     for cls in commands.values():
