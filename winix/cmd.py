@@ -171,23 +171,6 @@ class FanCmd(Cmd):
         print("ok")
 
 
-class PlasmaCmd(Cmd):
-    parser_args = {
-        "name": "plasma",
-        "help": "Plasma Control",
-    }
-
-    @classmethod
-    def add_parser(cls, parser):
-        parser.add_argument("state", help="Power state", choices=["on", "off"])
-
-    def execute(self):
-        state = self.args.state
-        device = WinixDevice(self.config.device.id)
-        getattr(device, "plasma_" + state)()
-        print("ok")
-
-
 class PowerCmd(Cmd):
     parser_args = {
         "name": "power",
