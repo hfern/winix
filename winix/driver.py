@@ -108,15 +108,15 @@ class WinixDevice:
     STAT_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
 
     category_keys = {
-        'power'      : 'A02',
-        'mode'       : 'A03',
-        'airflow'    : 'A04',
-        'unknown_a05': 'A05', # possible: consumed filter percentage
-        'plasma'     : 'A07',
-        'unknown_a21': 'A21', # possible: AQI
-        'air_quality': 'S07',
-        'unknown_s08': 'S08',
-        'unknown_s14': 'S14'  # possible: allergen index
+        'power'         : 'A02',
+        'mode'          : 'A03',
+        'airflow'       : 'A04',
+        'aqi'           : 'A05',
+        'plasma'        : 'A07',
+        'filter_hour'   : 'A21',
+        'air_quality'   : 'S07',
+        'air_qvalue'    : 'S08',
+        'ambient_light' : 'S14'
     }
 
     state_keys = {
