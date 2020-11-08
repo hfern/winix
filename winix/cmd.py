@@ -240,10 +240,10 @@ class RefreshCmd(Cmd):
         self.config.save()
         print("Ok")
 
-class StatusCmd(Cmd):
+class StateCmd(Cmd):
     parser_args = {
-        "name": "getstat",
-        "help": "Get device status",
+        "name": "getstate",
+        "help": "Get device state",
     }
 
     @classmethod
@@ -252,7 +252,7 @@ class StatusCmd(Cmd):
 
     def execute(self):
         device = WinixDevice(self.config.device.id)
-        state = "get_stat"
+        state = "get_state"
         status = getattr(device, state)()
         for f, v in status.items():
                 print(f"{f:>15} : {v}")
@@ -267,7 +267,7 @@ def main():
             LoginCmd,
             RefreshCmd,
             DevicesCmd,
-            StatusCmd,
+            StateCmd,
             FanCmd,
             PowerCmd,
             ModeCmd,

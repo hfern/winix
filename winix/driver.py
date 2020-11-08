@@ -104,8 +104,8 @@ class WinixAccount:
 
 
 class WinixDevice:
-    CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
-    STAT_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
+    CTRL_URL  = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
+    STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
 
     category_keys = {
         'power'         : 'A02',
@@ -171,22 +171,19 @@ class WinixDevice:
     def _rpc_attr(self, attr: str, value: str):
         requests.get(self.CTRL_URL.format(deviceid=self.id, attribute=attr, value=value))
 
-    def get_stat(self):
-        r = requests.get(self.STAT_URL.format(deviceid=self.id))
+    def get_state(self):
+        r = requests.get(self.STATE_URL.format(deviceid=self.id))
         payload = r.json()['body']['data'][0]['attributes']
 
-        status = dict()
-        for (key, attribute) in payload.items():
-            for (k, v) in self.category_keys.items():
-                if (key == v):
-                    category = k
+        output = dict()
+        for (payload_key, attribute) in payload.items():
+            for (category, local_key) in self.category_keys.items():
+                if (payload_key == local_key):
+                    if (category in self.state_keys.keys()):
+                        for (value_key, value) in self.state_keys[category].items():
+                            if (attribute == value):
+                                output[category] = value_key
+                    else:
+                        output[category] = int(attribute)
 
-            if category in self.state_keys.keys():
-                for (k, v) in self.state_keys[category].items():
-                    if (attribute == v):
-                        value = k
-                status[category] = value
-            else:
-                status[category] = int(attribute)
-
-        return status
+        return output
