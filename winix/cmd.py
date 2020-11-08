@@ -240,6 +240,22 @@ class RefreshCmd(Cmd):
         self.config.save()
         print("Ok")
 
+class StatusCmd(Cmd):
+    parser_args = {
+        "name": "getstat",
+        "help": "Get device status",
+    }
+
+    @classmethod
+    def add_parser(cls, parser):
+        pass
+
+    def execute(self):
+        device = WinixDevice(self.config.device.id)
+        state = "get_stat"
+        status = getattr(device, state)()
+        for f, v in status.items():
+                print(f"{f:>15} : {v}")
 
 def main():
     parser = argparse.ArgumentParser(description="Winix C545 Air Purifier Control")
@@ -251,6 +267,7 @@ def main():
             LoginCmd,
             RefreshCmd,
             DevicesCmd,
+            StatusCmd,
             FanCmd,
             PowerCmd,
             ModeCmd,
