@@ -54,7 +54,12 @@ class Configuration:
         makedirs(path.dirname(self.config_path), mode=0o755, exist_ok=True)
         with open(os.open(self.config_path, os.O_CREAT | os.O_WRONLY, 0o755), "w") as f:
             json.dump(
-                {"cognito": self.cognito, "devices": self.devices,}, f, cls=JSONEncoder
+                {
+                    "cognito": self.cognito,
+                    "devices": self.devices,
+                },
+                f,
+                cls=JSONEncoder,
             )
 
 
@@ -130,7 +135,10 @@ class DevicesCmd(Cmd):
 
         for i, device in enumerate(self.config.devices):
             hidden_deviceid = "_".join(
-                [device.id.split("_")[0], "*" * len(device.id.split("_", 1)[1]),]
+                [
+                    device.id.split("_")[0],
+                    "*" * len(device.id.split("_", 1)[1]),
+                ]
             )
 
             fields = (
@@ -240,6 +248,7 @@ class RefreshCmd(Cmd):
         self.config.save()
         print("Ok")
 
+
 class StateCmd(Cmd):
     parser_args = {
         "name": "getstate",
@@ -255,7 +264,8 @@ class StateCmd(Cmd):
         state = "get_state"
         status = getattr(device, state)()
         for f, v in status.items():
-                print(f"{f:>15} : {v}")
+            print(f"{f:>15} : {v}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Winix C545 Air Purifier Control")

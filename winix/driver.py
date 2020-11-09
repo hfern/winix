@@ -43,7 +43,10 @@ class WinixAccount:
     def get_device_info_list(self):
         resp = requests.post(
             "https://us.mobile.winix-iot.com/getDeviceInfoList",
-            json={"accessToken": self.access_token, "uuid": self.get_uuid(),},
+            json={
+                "accessToken": self.access_token,
+                "uuid": self.get_uuid(),
+            },
         )
 
         if resp.status_code != 200:
@@ -104,84 +107,95 @@ class WinixAccount:
 
 
 class WinixDevice:
-    CTRL_URL  = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
+    CTRL_URL = "https://us.api.winix-iot.com/common/control/devices/{deviceid}/A211/{attribute}:{value}"
     STATE_URL = "https://us.api.winix-iot.com/common/event/sttus/devices/{deviceid}"
 
     category_keys = {
-        'power'         : 'A02',
-        'mode'          : 'A03',
-        'airflow'       : 'A04',
-        'aqi'           : 'A05',
-        'plasma'        : 'A07',
-        'filter_hour'   : 'A21',
-        'air_quality'   : 'S07',
-        'air_qvalue'    : 'S08',
-        'ambient_light' : 'S14'
+        "power": "A02",
+        "mode": "A03",
+        "airflow": "A04",
+        "aqi": "A05",
+        "plasma": "A07",
+        "filter_hour": "A21",
+        "air_quality": "S07",
+        "air_qvalue": "S08",
+        "ambient_light": "S14",
     }
 
     state_keys = {
-        'power'      : {'off': '0', 'on': '1'},
-        'mode'       : {'auto': '01', 'manual': '02'},
-        'airflow'    : {
-            'low'    : '01',
-            'medium' : '02',
-            'high'   : '03',
-            'turbo'  : '05',
-            'sleep'  : '06'},
-        'plasma'     : {'off': '0', 'on': '1'},
-        'air_quality': {'good': '01', 'fair': '02', 'poor': '03'}
+        "power": {"off": "0", "on": "1"},
+        "mode": {"auto": "01", "manual": "02"},
+        "airflow": {
+            "low": "01",
+            "medium": "02",
+            "high": "03",
+            "turbo": "05",
+            "sleep": "06",
+        },
+        "plasma": {"off": "0", "on": "1"},
+        "air_quality": {"good": "01", "fair": "02", "poor": "03"},
     }
 
     def __init__(self, id):
         self.id = id
 
     def off(self):
-        self._rpc_attr(self.category_keys['power'], self.state_keys['power']['off'])
+        self._rpc_attr(self.category_keys["power"], self.state_keys["power"]["off"])
 
     def on(self):
-        self._rpc_attr(self.category_keys['power'], self.state_keys['power']['on'])
+        self._rpc_attr(self.category_keys["power"], self.state_keys["power"]["on"])
 
     def auto(self):
-        self._rpc_attr(self.category_keys['mode'], self.state_keys['mode']['auto'])
+        self._rpc_attr(self.category_keys["mode"], self.state_keys["mode"]["auto"])
 
     def manual(self):
-        self._rpc_attr(self.category_keys['mode'], self.state_keys['mode']['manual'])
+        self._rpc_attr(self.category_keys["mode"], self.state_keys["mode"]["manual"])
 
     def plasmawave_off(self):
-        self._rpc_attr(self.category_keys['plasma'], self.state_keys['plasma']['off'])
+        self._rpc_attr(self.category_keys["plasma"], self.state_keys["plasma"]["off"])
 
     def plasmawave_on(self):
-        self._rpc_attr(self.category_keys['plasma'], self.state_keys['plasma']['on'])
+        self._rpc_attr(self.category_keys["plasma"], self.state_keys["plasma"]["on"])
 
     def low(self):
-        self._rpc_attr(self.category_keys['airflow'], self.state_keys['airflow']['low'])
+        self._rpc_attr(self.category_keys["airflow"], self.state_keys["airflow"]["low"])
 
     def medium(self):
-        self._rpc_attr(self.category_keys['airflow'], self.state_keys['airflow']['medium'])
+        self._rpc_attr(
+            self.category_keys["airflow"], self.state_keys["airflow"]["medium"]
+        )
 
     def high(self):
-        self._rpc_attr(self.category_keys['airflow'], self.state_keys['airflow']['high'])
+        self._rpc_attr(
+            self.category_keys["airflow"], self.state_keys["airflow"]["high"]
+        )
 
     def turbo(self):
-        self._rpc_attr(self.category_keys['airflow'], self.state_keys['airflow']['turbo'])
+        self._rpc_attr(
+            self.category_keys["airflow"], self.state_keys["airflow"]["turbo"]
+        )
 
     def sleep(self):
-        self._rpc_attr(self.category_keys['airflow'], self.state_keys['airflow']['sleep'])
+        self._rpc_attr(
+            self.category_keys["airflow"], self.state_keys["airflow"]["sleep"]
+        )
 
     def _rpc_attr(self, attr: str, value: str):
-        requests.get(self.CTRL_URL.format(deviceid=self.id, attribute=attr, value=value))
+        requests.get(
+            self.CTRL_URL.format(deviceid=self.id, attribute=attr, value=value)
+        )
 
     def get_state(self):
         r = requests.get(self.STATE_URL.format(deviceid=self.id))
-        payload = r.json()['body']['data'][0]['attributes']
+        payload = r.json()["body"]["data"][0]["attributes"]
 
         output = dict()
         for (payload_key, attribute) in payload.items():
             for (category, local_key) in self.category_keys.items():
-                if (payload_key == local_key):
-                    if (category in self.state_keys.keys()):
+                if payload_key == local_key:
+                    if category in self.state_keys.keys():
                         for (value_key, value) in self.state_keys[category].items():
-                            if (attribute == value):
+                            if attribute == value:
                                 output[category] = value_key
                     else:
                         output[category] = int(attribute)
