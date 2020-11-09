@@ -39,7 +39,6 @@ this will save a token from the Winix backend in a file on your system
 at `~/config/winix/config.json`. It will prompt you for a username
 and password. You can use the `--username` and `--password` flags as well.
 
-
 You can see the devives registered to your winix account
 with `winixctl devices`.
 
