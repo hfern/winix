@@ -18,4 +18,6 @@ dist:
 	$(HIDE)$(BIN_DIR)python3 -m twine upload  dist/*
 
 test-fmt:
-	$(HIDE)$(BIN_DIR)black --check winix
+	$(HIDE)$(BIN_DIR)black --check winix || ( \
+		echo "Linting Failed: Try auto reformatting with 'make fmt'" && exit 1 \
+	)
