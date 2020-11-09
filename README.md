@@ -15,16 +15,17 @@ as the `winixctl` command for shell (which uses the library).
 ## `winixctl` CLI
 
 ```
-~/dev/winix(master) » winixctl
-usage: winixctl [-h] {login,refresh,devices,fan,power,mode,plasmawave} ...
+$ winixctl
+usage: winixctl [-h] {login,refresh,devices,getstate,fan,power,mode,plasmawave} ...
 
 Winix C545 Air Purifier Control
 
 positional arguments:
-  {login,refresh,devices,fan,power,mode,plasmawave}
+  {login,refresh,devices,getstate,fan,power,mode,plasmawave}
     login               Authenticate Winix account
     refresh             Refresh account device metadata
     devices             List registered Winix devices
+    getstate            Get device state
     fan                 Fan speed controls
     power               Power controls
     mode                Mode controls
