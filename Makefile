@@ -16,3 +16,6 @@ fmt:
 dist:
 	$(HIDE)$(BIN_DIR)python setup.py sdist bdist_wheel
 	$(HIDE)$(BIN_DIR)python3 -m twine upload  dist/*
+
+test-fmt:
+	$(HIDE)$(BIN_DIR)black --check winix
