@@ -61,7 +61,9 @@ def refresh(user_id: str, refresh_token: str, **kwargs) -> WinixAuthResponse:
     }
 
     resp = _boto_client(kwargs.get("pool_region")).initiate_auth(
-        ClientId=client_id, AuthFlow="REFRESH_TOKEN", AuthParameters=auth_params,
+        ClientId=client_id,
+        AuthFlow="REFRESH_TOKEN",
+        AuthParameters=auth_params,
     )
 
     return WinixAuthResponse(
