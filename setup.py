@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="winix",
-    version="0.2.1",
+    version="0.3.0",
     author="Hunter Fernandes",
     author_email="hunter@hfernandes.com",
     description="Programmatically control the Winix C545",
