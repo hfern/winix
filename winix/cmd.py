@@ -2,15 +2,19 @@ import argparse
 import json
 import os
 import dataclasses
-import re
+import sys
 from getpass import getpass
-from os import environ, path, makedirs
+from os import path, makedirs
 from typing import Optional, List
 
 from winix import WinixAccount, WinixDevice, WinixDeviceStub
 from winix.auth import WinixAuthResponse, login, refresh
 
 DEFAULT_CONFIG_PATH = "~/.config/winix/config.json"
+
+
+class UserError(Exception):
+    pass
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -30,9 +34,19 @@ class Configuration:
         self.config_path = path.expanduser(config_path)
         self._load_from_disk()
 
-    @property
-    def device(self) -> WinixDeviceStub:
-        return self.devices[0]
+    def device(self, selector: str) -> WinixDeviceStub:
+        try:
+            return [
+                d
+                for i, d in enumerate(self.devices)
+                if selector.lower() in (str(i), d.mac.lower(), d.alias.lower())
+            ][0]
+        except IndexError:
+            raise UserError(
+                f'Could not find device matching "{selector}"! '
+                f"You can use Index, MAC, or Alias for the selector. "
+                f"View the list of available devices with `winixctl devices`."
+            )
 
     def _load_from_disk(self):
         if path.exists(self.config_path):
@@ -53,20 +67,24 @@ class Configuration:
     def save(self):
         makedirs(path.dirname(self.config_path), mode=0o755, exist_ok=True)
         with open(os.open(self.config_path, os.O_CREAT | os.O_WRONLY, 0o755), "w") as f:
-            json.dump(
+            f.truncate()
+            js = json.dumps(
                 {
                     "cognito": self.cognito,
                     "devices": self.devices,
                 },
-                f,
                 cls=JSONEncoder,
             )
+            f.write(js)
 
 
 class Cmd:
     def __init__(self, args: argparse.Namespace, config: Configuration):
         self.args = args
         self.config = config
+
+    def active_device_id(self) -> str:
+        return self.config.device(self.args.device_selector).id
 
 
 class LoginCmd(Cmd):
@@ -176,7 +194,7 @@ class FanCmd(Cmd):
     def execute(self):
         level = self.args.level
         # TODO(Hunter): Support getting the fan state instead of only being able to set it
-        device = WinixDevice(self.config.device.id)
+        device = WinixDevice(self.active_device_id())
         getattr(device, level)()
         print("ok")
 
@@ -193,7 +211,7 @@ class PowerCmd(Cmd):
 
     def execute(self):
         state = self.args.state
-        device = WinixDevice(self.config.device.id)
+        device = WinixDevice(self.active_device_id())
         getattr(device, state)()
         print("ok")
 
@@ -210,7 +228,7 @@ class ModeCmd(Cmd):
 
     def execute(self):
         state = self.args.state
-        device = WinixDevice(self.config.device.id)
+        device = WinixDevice(self.active_device_id())
         getattr(device, state)()
         print("ok")
 
@@ -227,7 +245,7 @@ class PlasmawaveCmd(Cmd):
 
     def execute(self):
         state = "plasmawave_on" if self.args.state == "on" else "plasmawave_off"
-        device = WinixDevice(self.config.device.id)
+        device = WinixDevice(self.active_device_id())
         getattr(device, state)()
         print("ok")
 
@@ -260,7 +278,7 @@ class StateCmd(Cmd):
         pass
 
     def execute(self):
-        device = WinixDevice(self.config.device.id)
+        device = WinixDevice(self.active_device_id())
         state = "get_state"
         status = getattr(device, state)()
         for f, v in status.items():
@@ -269,6 +287,13 @@ class StateCmd(Cmd):
 
 def main():
     parser = argparse.ArgumentParser(description="Winix C545 Air Purifier Control")
+    parser.add_argument(
+        "--device",
+        "-D",
+        help="Device Index/Mac/Alias to use",
+        default="0",
+        dest="device_selector",
+    )
     subparsers = parser.add_subparsers(dest="cmd")
 
     commands = {
@@ -297,4 +322,8 @@ def main():
         return
 
     cls = commands[cmd]
-    cls(args, config=Configuration("~/.config/winix/config.json")).execute()
+    try:
+        cls(args, config=Configuration("~/.config/winix/config.json")).execute()
+    except UserError as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)

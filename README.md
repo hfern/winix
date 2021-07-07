@@ -16,7 +16,7 @@ as the `winixctl` command for shell (which uses the library).
 
 ```
 $ winixctl
-usage: winixctl [-h] {login,refresh,devices,getstate,fan,power,mode,plasmawave} ...
+usage: winixctl [-h] [--device DEVICE_SELECTOR] {login,refresh,devices,getstate,fan,power,mode,plasmawave} ...
 
 Winix C545 Air Purifier Control
 
@@ -33,6 +33,8 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  --device DEVICE_SELECTOR, -D DEVICE_SELECTOR
+                        Device Index/Mac/Alias to use
 ```
 
 In order to control your device, you first must run `winixctl login`.
@@ -56,3 +58,23 @@ with `winixctl devices`.
 
 The last portion of the Device ID is hidden as it can be used to control
 the device.
+
+### Multi-device Support
+
+By default the commands will work on the first device you have in your Winix account. If you
+have multiple air purifiers, you can specify which device to use by specifying
+a value for the top-level `--device` flag (short: `-D`).
+
+You may specify one of:
+- The device **index**. Example: `0` _(the default device selector)_.
+- The device **mac**. Example: `123456abcde`. Mac values stay the same between device registration.
+    If you have a device that you move between Wifi networks frequently then you will want
+    to use this.
+- The device **alias**. Example: `bedroom`. This is the most human-friendly version.
+
+
+**Examples**
+
+Turn off the bedroom air purifier _using an alias as the selector_:
+
+    winixctl -D bedroom power off

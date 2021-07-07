@@ -46,7 +46,7 @@ def login(username: str, password: str, **kwargs):
 
 
 def refresh(user_id: str, refresh_token: str, **kwargs) -> WinixAuthResponse:
-    """Refresh """
+    """Refresh"""
     from warrant_lite import WarrantLite
 
     client_id = kwargs.get("client_id", COGNITO_APP_CLIENT_ID)
