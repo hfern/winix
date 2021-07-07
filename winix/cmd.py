@@ -289,6 +289,7 @@ def main():
     parser = argparse.ArgumentParser(description="Winix C545 Air Purifier Control")
     parser.add_argument(
         "--device",
+        "-D",
         help="Device Index/Mac/Alias to use",
         default="0",
         dest="device_selector",
